@@ -14,7 +14,7 @@ impl<'s> System<'s> for PaddleSystem {
         Read<'s, InputHandler<String, String>>,
     );
 
-           fn run(&mut self, (mut transforms, paddles, input): Self::SystemData) {
+    fn run(&mut self, (mut transforms, paddles, input): Self::SystemData) {
         for (paddle, transform) in (&paddles, &mut transforms).join() {
             let movement = match paddle.side {
                 Side::Left => input.axis_value("left_paddle"),
