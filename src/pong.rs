@@ -1,10 +1,12 @@
 use amethyst::{
-    assets::{AssetStorage, Loader},
+    assets::{AssetStorage, Loader, Handle},
     core::transform::Transform,
     ecs::prelude::{Component, DenseVecStorage, Entity},
     renderer::{
         Camera, Flipped, PngFormat,
         Projection, SpriteRender, SpriteSheet, SpriteSheetFormat, SpriteSheetHandle,
+        Shape,
+        Mesh, PosNormTex, Material, MaterialDefaults,
         Texture, TextureMetadata,
     },
     prelude::*,
@@ -18,7 +20,7 @@ impl Component for Paddle {
 pub const ARENA_HEIGHT: f32 = 100.0;
 pub const ARENA_WIDTH: f32 = 100.0;
 
-fn initialise_camera(world: &mut World) {
+fn initialize_camera(world: &mut World) {
     let mut transform = Transform::default();
     transform.set_z(1.0);
     world
@@ -58,8 +60,8 @@ impl Paddle {
 pub const PADDLE_HEIGHT: f32 = 4.0;
 pub const PADDLE_WIDTH: f32 = 4.0;
 
-/// Initialises one paddle on the left, and one paddle on the right.
-fn initialise_paddles(world: &mut World, sprite_sheet: SpriteSheetHandle) {
+/// initializes one paddle on the left, and one paddle on the right.
+fn initialize_paddles(world: &mut World, sprite_sheet: SpriteSheetHandle) {
     // Assign the sprites for the paddles
     let sprite_render = SpriteRender {
         sprite_sheet: sprite_sheet.clone(),
@@ -132,8 +134,8 @@ impl Component for Ball {
     type Storage = DenseVecStorage<Self>;
 }
 
-/// Initialises one ball in the middle-ish of the arena.
-fn initialise_ball(world: &mut World, sprite_sheet_handle: SpriteSheetHandle) {
+/// initializes one ball in the middle-ish of the arena.
+fn initialize_ball(world: &mut World, sprite_sheet_handle: SpriteSheetHandle) {
     // Create the translation.
     let mut local_transform = Transform::default();
     local_transform.set_xyz(ARENA_WIDTH / 2.0, ARENA_HEIGHT / 2.0, 0.0);
@@ -168,8 +170,8 @@ pub struct ScoreText {
     pub p2_score: Entity,
 }
 
-/// Initialises a ui scoreboard
-fn initialise_scoreboard(world: &mut World) {
+/// initializes a ui scoreboard
+fn initialize_scoreboard(world: &mut World) {
     let font = world.read_resource::<Loader>().load(
         "font/square.ttf",
         TtfFormat,
@@ -215,20 +217,64 @@ impl SimpleState for Pong {
     fn on_start(&mut self, data: StateData<'_, GameData<'_, '_>>) {
         let world = data.world;
 
-        world.register::<Paddle>();
-
         // Load the spritesheet necessary to render the graphics.
         let sprite_sheet_handle = load_sprite_sheet(world);
 
-        world.register::<Paddle>();
+        initialize_ball(world, sprite_sheet_handle.clone());
 
-        initialise_ball(world, sprite_sheet_handle.clone());
+        initialize_paddles(world, sprite_sheet_handle);
 
-        initialise_paddles(world, sprite_sheet_handle);
+        initialize_camera(world);
 
-        initialise_camera(world);
+        initialize_scoreboard(world);
 
-        initialise_scoreboard(world);
+        initialize_circles(world);
     }
 }
 
+const CIRCLE_COLOR: [f32; 4] = [0.2, 0.2, 0.2, 1.0];
+const BACKGROUND_COLOR: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
+
+fn initialize_circles(world: &mut World) {
+    // Create the translation.
+    let mut local_transform = Transform::default();
+    local_transform.set_xyz(ARENA_WIDTH / 2.0, ARENA_HEIGHT / 2.0, 0.0);
+
+    let circle_size = 50.0;
+
+    let (mesh, material) = create_circle(world, CIRCLE_COLOR, circle_size);
+    world
+        .create_entity()
+        .with(local_transform.clone())
+        .with(mesh)
+        .with(material)
+        .build();
+
+    let (mesh, material) = create_circle(world, BACKGROUND_COLOR, circle_size - 1.0);
+    world
+        .create_entity()
+        .with(local_transform)
+        .with(mesh)
+        .with(material)
+        .build();
+}
+
+fn create_circle(world: &mut World, color: [f32; 4], size: f32) -> (Handle<Mesh>, Material) {
+    let loader = world.read_resource::<Loader>();
+    let mesh: Handle<Mesh> = loader.load_from_data(
+        Shape::Circle(32).generate::<Vec<PosNormTex>>(Some((size, size, size))),
+        (),
+        &world.read_resource(),
+    );
+    let albedo = color.into();
+
+    let tex_storage = world.read_resource();
+    let material_defaults = world.read_resource::<MaterialDefaults>();
+    let albedo = loader.load_from_data(albedo, (), &tex_storage);
+    let material = Material {
+        albedo,
+        ..material_defaults.0.clone()
+    };
+
+    (mesh, material)
+}

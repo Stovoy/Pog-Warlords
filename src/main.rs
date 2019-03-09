@@ -10,7 +10,8 @@ use amethyst::input::InputBundle;
 use amethyst::prelude::*;
 use amethyst::{
     renderer::{
-        DisplayConfig, DrawFlat2D, Pipeline,
+        DisplayConfig, DrawFlat, DrawFlat2D, Pipeline,
+        PosNormTex,
         RenderBundle,
         Stage,
     },
@@ -28,6 +29,7 @@ fn main() -> amethyst::Result<()> {
     let pipe = Pipeline::build().with_stage(
         Stage::with_backbuffer()
             .clear_target([0.0, 0.0, 0.0, 1.0], 1.0)
+            .with_pass(DrawFlat::<PosNormTex>::new())
             .with_pass(DrawFlat2D::new())
             .with_pass(DrawUi::new())
     );
