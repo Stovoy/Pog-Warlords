@@ -53,12 +53,6 @@ impl<'s> System<'s> for WinnerSystem {
             if did_hit {
                 ball.velocity[0] = -ball.velocity[0]; // Reverse Direction
                 transform.set_x(ARENA_WIDTH / 2.0); // Reset Position
-
-                // Print the score board.
-                println!(
-                    "Score: | {:^3} | {:^3} |",
-                    scores.score_left, scores.score_right
-                );
             }
         }
     }

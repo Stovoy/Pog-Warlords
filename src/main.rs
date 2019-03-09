@@ -20,7 +20,7 @@ use amethyst::{
 };
 
 fn main() -> amethyst::Result<()> {
-    amethyst::start_logger(Default::default());
+    // amethyst::start_logger(Default::default());
 
     let display_path = format!("{}/resources/display_config.ron", application_root_dir());
 

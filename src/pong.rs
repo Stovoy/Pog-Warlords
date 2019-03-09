@@ -262,7 +262,7 @@ fn initialize_circles(world: &mut World) {
 fn create_circle(world: &mut World, color: [f32; 4], size: f32) -> (Handle<Mesh>, Material) {
     let loader = world.read_resource::<Loader>();
     let mesh: Handle<Mesh> = loader.load_from_data(
-        Shape::Circle(32).generate::<Vec<PosNormTex>>(Some((size, size, size))),
+        Shape::Circle(128).generate::<Vec<PosNormTex>>(Some((size, size, size))),
         (),
         &world.read_resource(),
     );
