@@ -9,12 +9,7 @@ use amethyst::core::transform::TransformBundle;
 use amethyst::input::InputBundle;
 use amethyst::prelude::*;
 use amethyst::{
-    renderer::{
-        DisplayConfig, DrawFlat, DrawFlat2D, Pipeline,
-        PosNormTex,
-        RenderBundle,
-        Stage,
-    },
+    renderer::{DisplayConfig, DrawFlat, DrawFlat2D, Pipeline, PosNormTex, RenderBundle, Stage},
     ui::{DrawUi, UiBundle},
     utils::application_root_dir,
 };
@@ -31,7 +26,7 @@ fn main() -> amethyst::Result<()> {
             .clear_target([0.0, 0.0, 0.0, 1.0], 1.0)
             .with_pass(DrawFlat::<PosNormTex>::new())
             .with_pass(DrawFlat2D::new())
-            .with_pass(DrawUi::new())
+            .with_pass(DrawUi::new()),
     );
 
     let binding_path = format!("{}/resources/bindings_config.ron", application_root_dir());
@@ -46,7 +41,11 @@ fn main() -> amethyst::Result<()> {
         .with_bundle(UiBundle::<String, String>::new())?
         .with(systems::PaddleSystem, "paddle_system", &["input_system"])
         .with(systems::MoveBallsSystem, "ball_system", &[])
-        .with(systems::BounceSystem, "bounce_system", &["paddle_system", "ball_system"])
+        .with(
+            systems::BounceSystem,
+            "bounce_system",
+            &["paddle_system", "ball_system"],
+        )
         .with(systems::WinnerSystem, "winner_system", &["ball_system"]);
 
     let mut game = Application::new("./", Pong, game_data)?;

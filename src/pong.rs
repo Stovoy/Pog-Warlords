@@ -1,17 +1,16 @@
 use amethyst::{
-    assets::{AssetStorage, Loader, Handle},
+    assets::{AssetStorage, Handle, Loader},
     core::transform::Transform,
     ecs::prelude::{Component, DenseVecStorage, Entity},
-    renderer::{
-        Camera, Flipped, PngFormat,
-        Projection, SpriteRender, SpriteSheet, SpriteSheetFormat, SpriteSheetHandle,
-        Shape,
-        Mesh, PosNormTex, Material, MaterialDefaults,
-        Texture, TextureMetadata,
-    },
     prelude::*,
+    renderer::{
+        Camera, Flipped, Material, MaterialDefaults, Mesh, PngFormat, PosNormTex, Projection,
+        Shape, SpriteRender, SpriteSheet, SpriteSheetFormat, SpriteSheetHandle, Texture,
+        TextureMetadata,
+    },
     ui::{Anchor, TtfFormat, UiText, UiTransform},
 };
+use std::f32::consts::PI;
 
 impl Component for Paddle {
     type Storage = DenseVecStorage<Self>;
@@ -35,7 +34,7 @@ fn initialize_camera(world: &mut World) {
         .build();
 }
 
-#[derive(PartialEq, Eq)]
+#[derive(PartialEq, Copy, Clone, Eq)]
 pub enum Side {
     Left,
     Right,
@@ -45,6 +44,8 @@ pub struct Paddle {
     pub side: Side,
     pub width: f32,
     pub height: f32,
+    pub min_angle: f32,
+    pub max_angle: f32,
 }
 
 impl Paddle {
@@ -53,6 +54,14 @@ impl Paddle {
             side,
             width: 1.0,
             height: 1.0,
+            min_angle: match side {
+                Side::Left => -4.0 * PI / 3.0,
+                Side::Right => -PI / 3.0,
+            },
+            max_angle: match side {
+                Side::Left => 4.0 * PI / 3.0,
+                Side::Right => PI / 3.0,
+            },
         }
     }
 }
@@ -180,12 +189,24 @@ fn initialize_scoreboard(world: &mut World) {
         &world.read_resource(),
     );
     let p1_transform = UiTransform::new(
-        "P1".to_string(), Anchor::TopMiddle,
-        -50., -50., 1., 200., 50., 0,
+        "P1".to_string(),
+        Anchor::TopMiddle,
+        -50.,
+        -50.,
+        1.,
+        200.,
+        50.,
+        0,
     );
     let p2_transform = UiTransform::new(
-        "P2".to_string(), Anchor::TopMiddle,
-        50., -50., 1., 200., 50., 0,
+        "P2".to_string(),
+        Anchor::TopMiddle,
+        50.,
+        -50.,
+        1.,
+        200.,
+        50.,
+        0,
     );
 
     let p1_score = world
@@ -196,7 +217,8 @@ fn initialize_scoreboard(world: &mut World) {
             "0".to_string(),
             [1., 1., 1., 1.],
             50.,
-        )).build();
+        ))
+        .build();
 
     let p2_score = world
         .create_entity()
@@ -206,7 +228,8 @@ fn initialize_scoreboard(world: &mut World) {
             "0".to_string(),
             [1., 1., 1., 1.],
             50.,
-        )).build();
+        ))
+        .build();
 
     world.add_resource(ScoreText { p1_score, p2_score });
 }
